@@ -1,0 +1,72 @@
+{% extends "base.html" %} {% block content %}
+<h1 class="mt-5">Welcome, {{ current_user.username }}!</h1>
+<p class="lead">Your Dashboard</p>
+
+{% if laptops %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-3">
+  {% for laptop in laptops %} {% set last_reading =
+  laptop.readings.order_by(db.desc(SensorReading.timestamp)).first() %}
+  <div class="col">
+    <div class="card h-100 shadow">
+      <div class="card-body">
+        <h5 class="card-title d-flex align-items-center">
+          {% if laptop.is_stolen %}
+          <i class="bi bi-laptop fs-4 text-danger me-2"></i>
+          {% else %}
+          <i class="bi bi-laptop fs-4 text-success me-2"></i>
+          {% endif %} {{ laptop.name }}
+        </h5>
+        <h6 class="card-subtitle mb-2 text-muted">
+          Serial: {{ laptop.serial_number }}
+        </h6>
+        <p class="card-text">
+          <strong>Status:</strong>
+          {% if laptop.is_stolen %}
+          <span class="badge bg-danger">Stolen</span>
+          {% else %}
+          <span class="badge bg-success">Secure</span>
+          {% endif %}
+        </p>
+        <hr />
+        <p class="card-text">
+          <strong>iBeacon:</strong>
+          {% if laptop.ibeacon_uuid %}
+          <br />UUID: `{{ laptop.ibeacon_uuid }}` <br />Major: `{{
+          laptop.ibeacon_major }}` <br />Minor: `{{ laptop.ibeacon_minor }}` {%
+          if last_reading %} <br />RSSI: `{{ last_reading.ibeacon_rssi }}` {%
+          else %} <br />RSSI: N/A {% endif %} {% else %} <br />No iBeacon data
+          found. {% endif %}
+        </p>
+      </div>
+      <div
+        class="card-footer d-flex justify-content-between align-items-center"
+      >
+        <small class="text-muted">
+          Last seen: {{ last_reading.timestamp.strftime('%Y-%m-%d %H:%M:%S') if
+          last_reading else 'N/A' }}
+        </small>
+        <div class="d-flex gap-2">
+          <form
+            action="{{ url_for('delete_laptop', laptop_id=laptop.id) }}"
+            method="post"
+            onsubmit="return confirm('Are you sure you want to delete this laptop?');"
+          >
+            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+          </form>
+          <a
+            href="{{ url_for('laptop_details', laptop_id=laptop.id) }}"
+            class="btn btn-sm btn-outline-primary"
+            >Details</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info mt-4" role="alert">
+  You haven't added any laptops yet.
+  <a href="{{ url_for('add_laptop') }}" class="alert-link">Add one now!</a>
+</div>
+{% endif %} {% endblock %}

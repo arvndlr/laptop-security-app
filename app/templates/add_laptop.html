@@ -1,0 +1,155 @@
+{% extends "base.html" %} {% block content %}
+<div class="row">
+  <div class="col-md-6 offset-md-3">
+    <div class="card mt-5 shadow-lg">
+      <div class="card-header bg-primary text-white text-center">
+        <h3 class="mb-0">Add a New Laptop</h3>
+      </div>
+      <div class="card-body p-4">
+        <form action="" method="post" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.name.label(class="form-label") }} {{
+            form.name(class="form-control") }} {% for error in form.name.errors
+            %}
+            <div class="alert alert-danger mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.serial_number.label(class="form-label") }} {{
+            form.serial_number(class="form-control") }} {% for error in
+            form.serial_number.errors %}
+            <div class="alert alert-danger mt-1">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <hr class="my-4" />
+
+          <h5 class="text-center text-muted mb-3">iBeacon Tagging</h5>
+
+          <div class="d-grid mb-3">
+            <button type="button" id="scanButton" class="btn btn-info btn-lg">
+              Scan for iBeacons
+            </button>
+          </div>
+
+          <div
+            id="beaconSpinner"
+            class="text-center my-4"
+            style="display: none"
+          >
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Scanning...</span>
+            </div>
+            <p class="mt-2 text-muted">Scanning for 10 seconds...</p>
+          </div>
+
+          <div id="beaconSelection" class="mt-3" style="display: none">
+            <label class="form-label">Select a Holyiot iBeacon:</label>
+            <select id="beaconDropdown" name="ibeacon_data" class="form-select">
+              <option selected disabled value="no_beacon">
+                Choose a beacon...
+              </option>
+            </select>
+          </div>
+
+          <input type="hidden" name="ibeacon_uuid" id="ibeacon_uuid_hidden" />
+          <input type="hidden" name="ibeacon_major" id="ibeacon_major_hidden" />
+          <input type="hidden" name="ibeacon_minor" id="ibeacon_minor_hidden" />
+          <input type="hidden" name="ibeacon_rssi" id="ibeacon_rssi_hidden" />
+
+          <div class="mt-4 d-grid">
+            {{ form.submit(class="btn btn-primary btn-lg") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %} {{ super() }}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const scanButton = document.getElementById("scanButton");
+    const beaconSpinner = document.getElementById("beaconSpinner");
+    const beaconSelection = document.getElementById("beaconSelection");
+    const beaconDropdown = document.getElementById("beaconDropdown");
+    const uuidHiddenField = document.getElementById("ibeacon_uuid_hidden");
+    const majorHiddenField = document.getElementById("ibeacon_major_hidden");
+    const minorHiddenField = document.getElementById("ibeacon_minor_hidden");
+    const rssiHiddenField = document.getElementById("ibeacon_rssi_hidden");
+
+    if (scanButton) {
+      scanButton.addEventListener("click", function () {
+        scanButton.disabled = true;
+        beaconSpinner.style.display = "block";
+        beaconSelection.style.display = "none";
+        beaconDropdown.innerHTML =
+          '<option selected disabled value="no_beacon">Choose a beacon...</option>';
+        uuidHiddenField.value = "";
+        majorHiddenField.value = "";
+        minorHiddenField.value = "";
+        rssiHiddenField.value = "";
+
+        fetch(`{{ url_for('scan_ibeacons') }}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((data) => {
+            beaconSpinner.style.display = "none";
+            scanButton.disabled = false;
+
+            if (data.beacons && data.beacons.length > 0) {
+              beaconSelection.style.display = "block";
+              data.beacons.forEach((beacon) => {
+                const option = document.createElement("option");
+                // Use a single, pipe-separated value for easy parsing
+                const valueString = `${beacon.uuid}|${beacon.major}|${beacon.minor}|${beacon.rssi}`;
+                option.value = valueString;
+                option.textContent = `UUID: ${beacon.uuid} | Major: ${beacon.major} | Minor: ${beacon.minor} | RSSI: ${beacon.rssi}`;
+                beaconDropdown.appendChild(option);
+              });
+            } else {
+              alert("No iBeacons found during the scan.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert(
+              "An unexpected error occurred during the scan. Check the console for details."
+            );
+            beaconSpinner.style.display = "none";
+            scanButton.disabled = false;
+          });
+      });
+    }
+
+    if (beaconDropdown) {
+      beaconDropdown.addEventListener("change", function () {
+        const selectedValue = this.value;
+        if (selectedValue && selectedValue !== "no_beacon") {
+          const parts = selectedValue.split("|");
+          uuidHiddenField.value = parts[0];
+          majorHiddenField.value = parts[1];
+          minorHiddenField.value = parts[2];
+          rssiHiddenField.value = parts[3];
+        } else {
+          uuidHiddenField.value = "";
+          majorHiddenField.value = "";
+          minorHiddenField.value = "";
+          rssiHiddenField.value = "";
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

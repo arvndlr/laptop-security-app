@@ -1,0 +1,57 @@
+{% extends "base.html" %} {% block content %}
+<div class="row">
+  <div class="col-md-8 offset-md-2">
+    <div class="card mt-5 shadow">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h3>
+          {% if laptop.is_stolen %}
+          <i class="bi bi-laptop text-danger me-2"></i>
+          {% else %}
+          <i class="bi bi-laptop text-success me-2"></i>
+          {% endif %} {{ laptop.name }}
+        </h3>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary btn-sm"
+          >Back to Dashboard</a
+        >
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-3">Serial Number</dt>
+          <dd class="col-sm-9">{{ laptop.serial_number }}</dd>
+
+          <dt class="col-sm-3">Status</dt>
+          <dd class="col-sm-9">
+            {% if laptop.is_stolen %}
+            <span class="badge bg-danger">Stolen</span>
+            {% else %}
+            <span class="badge bg-success">Secure</span>
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-3">iBeacon UUID</dt>
+          <dd class="col-sm-9">`{{ laptop.ibeacon_uuid }}`</dd>
+
+          <dt class="col-sm-3">iBeacon Major</dt>
+          <dd class="col-sm-9">`{{ laptop.ibeacon_major }}`</dd>
+
+          <dt class="col-sm-3">iBeacon Minor</dt>
+          <dd class="col-sm-9">`{{ laptop.ibeacon_minor }}`</dd>
+
+          <dt class="col-sm-3">iBeacon RSSI</dt>
+          <dd class="col-sm-9">
+            `{{ last_reading.ibeacon_rssi if last_reading else 'N/A' }}`
+          </dd>
+
+          <dt class="col-sm-3">Last Seen</dt>
+          <dd class="col-sm-9">
+            {{ last_reading.timestamp.strftime('%Y-%m-%d %H:%M:%S') if
+            last_reading else 'N/A' }}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

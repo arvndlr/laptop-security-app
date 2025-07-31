@@ -100,14 +100,33 @@ def add_laptop():
 @login_required
 def scan_ibeacons():
     try:
-        # Use asyncio.run() to execute the async function
-        beacons = asyncio.run(scan_for_ibeacons(scan_duration=10))
-        if beacons:
-            return jsonify({'success': True, 'beacons': beacons})
+        # Step 1: Query the database for all iBeacons currently in use
+        used_beacons_tuples = db.session.query(
+            Laptop.ibeacon_uuid,
+            Laptop.ibeacon_major,
+            Laptop.ibeacon_minor
+        ).all()
+        
+        # Convert the list of tuples to a set for fast lookup
+        used_beacon_set = set(used_beacons_tuples)
+        
+        # Step 2: Perform the BLE scan
+        beacons_found = asyncio.run(scan_for_ibeacons(scan_duration=10))
+
+        # Step 3: Filter out any beacons that are already in the database
+        available_beacons = [
+            b for b in beacons_found 
+            if (b['uuid'], b['major'], b['minor']) not in used_beacon_set
+        ]
+        
+        if available_beacons:
+            print(f"Found {len(beacons_found)} beacons, {len(available_beacons)} are available.")
+            return jsonify({'success': True, 'beacons': available_beacons})
         else:
-            return jsonify({'success': False, 'message': 'No iBeacons found.'})
+            return jsonify({'success': False, 'message': 'No new iBeacons found.'})
+            
     except Exception as e:
-        app.logger.error(f"Error scanning for iBeacons: {e}")
+        current_app.logger.error(f"Error scanning for iBeacons: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @app.route('/delete_laptop/<int:laptop_id>', methods=['POST'])

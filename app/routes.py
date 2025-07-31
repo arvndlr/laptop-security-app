@@ -183,3 +183,20 @@ def check_security_status(laptop, reading):
     elif not is_out_of_range and not is_far_away:
         laptop.is_stolen = False
         db.session.commit()
+
+@app.route('/api/latest_reading/<int:laptop_id>', methods=['GET'])
+@login_required
+def get_latest_reading(laptop_id):
+    laptop = Laptop.query.filter_by(id=laptop_id, owner=current_user).first_or_404()
+    last_reading = SensorReading.query.filter_by(laptop_id=laptop.id).order_by(db.desc(SensorReading.timestamp)).first()
+    
+    if last_reading:
+        return jsonify({
+            'rssi': last_reading.ibeacon_rssi,
+            'timestamp': last_reading.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    else:
+        return jsonify({
+            'rssi': 'N/A',
+            'timestamp': 'N/A'
+        })

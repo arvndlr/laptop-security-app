@@ -7,7 +7,7 @@
   {% for laptop in laptops %} {% set last_reading =
   laptop.readings.order_by(db.desc(SensorReading.timestamp)).first() %}
   <div class="col">
-    <div class="card h-100 shadow">
+    <div class="card h-100 shadow laptop-card" data-laptop-id="{{ laptop.id }}">
       <div class="card-body">
         <h5 class="card-title d-flex align-items-center">
           {% if laptop.is_stolen %}
@@ -33,15 +33,19 @@
           {% if laptop.ibeacon_uuid %}
           <br />UUID: `{{ laptop.ibeacon_uuid }}` <br />Major: `{{
           laptop.ibeacon_major }}` <br />Minor: `{{ laptop.ibeacon_minor }}` {%
-          if last_reading %} <br />RSSI: `{{ last_reading.ibeacon_rssi }}` {%
-          else %} <br />RSSI: N/A {% endif %} {% else %} <br />No iBeacon data
-          found. {% endif %}
+          if last_reading %} <br /><span class="live-rssi"
+            >RSSI: `{{ last_reading.ibeacon_rssi }}`</span
+          >
+          {% else %}
+          <br /><span class="live-rssi">RSSI: N/A</span>
+          {% endif %} {% else %}
+          <br />No iBeacon data found. {% endif %}
         </p>
       </div>
       <div
         class="card-footer d-flex justify-content-between align-items-center"
       >
-        <small class="text-muted">
+        <small class="text-muted live-timestamp">
           Last seen: {{ last_reading.timestamp.strftime('%Y-%m-%d %H:%M:%S') if
           last_reading else 'N/A' }}
         </small>
@@ -69,4 +73,39 @@
   You haven't added any laptops yet.
   <a href="{{ url_for('add_laptop') }}" class="alert-link">Add one now!</a>
 </div>
-{% endif %} {% endblock %}
+{% endif %}
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const laptopCards = document.querySelectorAll(".laptop-card");
+
+    laptopCards.forEach((card) => {
+      const laptopId = card.dataset.laptopId;
+      const rssiElement = card.querySelector(".live-rssi");
+      const timestampElement = card.querySelector(".live-timestamp");
+
+      if (laptopId && rssiElement && timestampElement) {
+        // Function to fetch and update data
+        const updateData = () => {
+          fetch(`/api/latest_reading/${laptopId}`)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.rssi) {
+                rssiElement.textContent = `RSSI: ${data.rssi}`;
+              }
+              if (data.timestamp) {
+                timestampElement.textContent = `Last seen: ${data.timestamp}`;
+              }
+            })
+            .catch((error) => console.error("Error fetching data:", error));
+        };
+
+        // Call the function immediately and then every 5 seconds
+        updateData();
+        setInterval(updateData, 5000); // Poll every 5 seconds
+      }
+    });
+  });
+</script>
+
+{% endblock %}

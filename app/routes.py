@@ -6,6 +6,7 @@ from app.models import User, Laptop, SensorReading
 from urllib.parse import urlparse
 from app.ibeacon_scanner import scan_for_ibeacons
 import asyncio
+from datetime import datetime, timedelta
 
 @app.route('/')
 @app.route('/index')
@@ -200,3 +201,35 @@ def get_latest_reading(laptop_id):
             'rssi': 'N/A',
             'timestamp': 'N/A'
         })
+
+@app.route('/api/laptop_status/<string:serial_number>', methods=['POST'])
+def update_laptop_status(serial_number):
+    data = request.get_json()
+    is_stolen_status = data.get('is_stolen')
+
+    if is_stolen_status is None:
+        return jsonify({"message": "Invalid status provided"}), 400
+
+    laptop = Laptop.query.filter_by(serial_number=serial_number).first()
+    if not laptop:
+        return jsonify({"message": "Laptop not found"}), 404
+
+    laptop.is_stolen = is_stolen_status
+    db.session.commit()
+
+    return jsonify({"message": f"Laptop {serial_number} stolen status updated to {is_stolen_status}"}), 200
+
+@app.route('/api/laptop_status/<int:laptop_id>', methods=['GET'])
+def get_laptop_status(laptop_id):
+    laptop = Laptop.query.get_or_404(laptop_id)
+    last_reading = laptop.readings.order_by(db.desc(SensorReading.timestamp)).first()
+
+    status_data = {
+        "id": laptop.id,
+        "serial_number": laptop.serial_number,
+        "is_stolen": laptop.is_stolen,
+        "last_rssi": last_reading.ibeacon_rssi if last_reading else None,
+        "last_seen": last_reading.timestamp.strftime('%Y-%m-%d %H:%M:%S') if last_reading else None,
+    }
+    
+    return jsonify(status_data)

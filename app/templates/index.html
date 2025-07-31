@@ -81,20 +81,47 @@
 
     laptopCards.forEach((card) => {
       const laptopId = card.dataset.laptopId;
-      const rssiElement = card.querySelector(".live-rssi");
-      const timestampElement = card.querySelector(".live-timestamp");
 
-      if (laptopId && rssiElement && timestampElement) {
-        // Function to fetch and update data
+      if (laptopId) {
+        // Function to fetch and update all data for a card
         const updateData = () => {
-          fetch(`/api/latest_reading/${laptopId}`)
+          fetch(`/api/laptop_status/${laptopId}`)
             .then((response) => response.json())
             .then((data) => {
-              if (data.rssi) {
-                rssiElement.textContent = `RSSI: ${data.rssi}`;
-              }
-              if (data.timestamp) {
-                timestampElement.textContent = `Last seen: ${data.timestamp}`;
+              if (data) {
+                // Update the stolen status and card appearance
+                const cardTitleIcon = card.querySelector(".card-title i");
+                const statusBadge = card.querySelector(".card-text .badge");
+
+                if (data.is_stolen) {
+                  cardTitleIcon.classList.remove("text-success");
+                  cardTitleIcon.classList.add("text-danger");
+                  statusBadge.classList.remove("bg-success");
+                  statusBadge.classList.add("bg-danger");
+                  statusBadge.textContent = "Stolen";
+                } else {
+                  cardTitleIcon.classList.remove("text-danger");
+                  cardTitleIcon.classList.add("text-success");
+                  statusBadge.classList.remove("bg-danger");
+                  statusBadge.classList.add("bg-success");
+                  statusBadge.textContent = "Secure";
+                }
+
+                // Update the live RSSI and timestamp
+                const rssiElement = card.querySelector(".live-rssi");
+                const timestampElement = card.querySelector(".live-timestamp");
+
+                if (data.last_rssi) {
+                  rssiElement.textContent = `RSSI: ${data.last_rssi}`;
+                } else {
+                  rssiElement.textContent = `RSSI: N/A`;
+                }
+
+                if (data.last_seen) {
+                  timestampElement.textContent = `Last seen: ${data.last_seen}`;
+                } else {
+                  timestampElement.textContent = `Last seen: N/A`;
+                }
               }
             })
             .catch((error) => console.error("Error fetching data:", error));

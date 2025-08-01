@@ -65,15 +65,17 @@ def add_laptop():
         major = request.form.get('ibeacon_major')
         minor = request.form.get('ibeacon_minor')
         rssi = request.form.get('ibeacon_rssi')
+        mac_address = request.form.get('ibeacon_mac_address')
 
-        if uuid and major and minor:
+        if uuid and major and minor and mac_address:
             laptop = Laptop(
                 name=form.name.data,
                 serial_number=form.serial_number.data,
                 owner=current_user,
                 ibeacon_uuid=uuid,
                 ibeacon_major=int(major),
-                ibeacon_minor=int(minor)
+                ibeacon_minor=int(minor),
+                ibeacon_mac_address=mac_address
             )
             db.session.add(laptop)
             db.session.commit()
@@ -85,6 +87,7 @@ def add_laptop():
                     ibeacon_major=int(major),
                     ibeacon_minor=int(minor),
                     ibeacon_rssi=int(rssi),
+                    ibeacon_mac_address=mac_address,
                     ultrasonic_distance_1_cm=0.0, # <-- Corrected column names
                     ultrasonic_distance_2_cm=0.0,
                     ultrasonic_distance_3_cm=0.0,

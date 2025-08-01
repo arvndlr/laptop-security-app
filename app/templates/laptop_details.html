@@ -44,6 +44,9 @@
             `{{ last_reading.ibeacon_rssi if last_reading else 'N/A' }}`
           </dd>
 
+          <dt class="col-sm-3">iBeacon MAC</dt>
+          <dd class="col-sm-9">`{{ laptop.ibeacon_mac_address }}`</dd>
+
           <dt class="col-sm-3">Last Seen</dt>
           <dd class="col-sm-9">
             {{ last_reading.timestamp.strftime('%Y-%m-%d %H:%M:%S') if

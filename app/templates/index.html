@@ -33,8 +33,9 @@
           <strong>iBeacon:</strong>
           {% if laptop.ibeacon_uuid %}
           <br />UUID: `{{ laptop.ibeacon_uuid }}` <br />Major: `{{
-          laptop.ibeacon_major }}` <br />Minor: `{{ laptop.ibeacon_minor }}` {%
-          if last_reading %} <br /><span class="live-rssi"
+          laptop.ibeacon_major }}` <br />Minor: `{{ laptop.ibeacon_minor }}`<br />MAC:
+          `{{ laptop.ibeacon_mac_address }}` {% if last_reading %} <br /><span
+            class="live-rssi"
             >RSSI: `{{ last_reading.ibeacon_rssi }}`</span
           >
           {% else %}

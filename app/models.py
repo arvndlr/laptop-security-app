@@ -37,6 +37,7 @@ class Laptop(db.Model):
     ibeacon_uuid = db.Column(db.String(36))
     ibeacon_major = db.Column(db.Integer)
     ibeacon_minor = db.Column(db.Integer)
+    ibeacon_mac_address = db.Column(db.String(17))
 
     def __repr__(self):
         return f'<Laptop {self.name} - {self.serial_number}>'
@@ -47,6 +48,7 @@ class SensorReading(db.Model):
     ibeacon_uuid = db.Column(db.String(36))
     ibeacon_major = db.Column(db.Integer)
     ibeacon_minor = db.Column(db.Integer)
+    ibeacon_mac_address = db.Column(db.String(17))
     ibeacon_rssi = db.Column(db.Integer)
     
     # Columns for the four ultrasonic sensors

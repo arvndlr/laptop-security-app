@@ -59,6 +59,8 @@
           <input type="hidden" name="ibeacon_major" id="ibeacon_major_hidden" />
           <input type="hidden" name="ibeacon_minor" id="ibeacon_minor_hidden" />
           <input type="hidden" name="ibeacon_rssi" id="ibeacon_rssi_hidden" />
+          <input type="hidden" name="ibeacon_mac_address" id="ibeacon_mac_address_hidden" />
+
 
           <div class="mt-4 d-grid">
             {{ form.submit(class="btn btn-primary btn-lg") }}
@@ -79,6 +81,7 @@
     const majorHiddenField = document.getElementById("ibeacon_major_hidden");
     const minorHiddenField = document.getElementById("ibeacon_minor_hidden");
     const rssiHiddenField = document.getElementById("ibeacon_rssi_hidden");
+    const macAddressHiddenField = document.getElementById("ibeacon_mac_address_hidden");
 
     if (scanButton) {
       scanButton.addEventListener("click", function () {
@@ -91,6 +94,7 @@
         majorHiddenField.value = "";
         minorHiddenField.value = "";
         rssiHiddenField.value = "";
+        macAddressHiddenField.value = "";
 
         fetch(`{{ url_for('scan_ibeacons') }}`, {
           method: "POST",
@@ -113,9 +117,9 @@
               data.beacons.forEach((beacon) => {
                 const option = document.createElement("option");
                 // Use a single, pipe-separated value for easy parsing
-                const valueString = `${beacon.uuid}|${beacon.major}|${beacon.minor}|${beacon.rssi}`;
+                const valueString = `${beacon.uuid}|${beacon.major}|${beacon.minor}|${beacon.rssi}|${beacon.mac_address}`;
                 option.value = valueString;
-                option.textContent = `UUID: ${beacon.uuid} | Major: ${beacon.major} | Minor: ${beacon.minor} | RSSI: ${beacon.rssi}`;
+                option.textContent = `UUID: ${beacon.uuid} | Major: ${beacon.major} | Minor: ${beacon.minor} | RSSI: ${beacon.rssi} | MAC: ${beacon.mac_address}`;
                 beaconDropdown.appendChild(option);
               });
             } else {
@@ -142,6 +146,7 @@
           majorHiddenField.value = parts[1];
           minorHiddenField.value = parts[2];
           rssiHiddenField.value = parts[3];
+          macAddressHiddenField.value = parts[4];
         } else {
           uuidHiddenField.value = "";
           majorHiddenField.value = "";

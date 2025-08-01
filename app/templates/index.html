@@ -1,4 +1,5 @@
 {% extends "base.html" %} {% block content %}
+
 <h1 class="mt-5">Welcome, {{ current_user.username }}!</h1>
 <p class="lead">Your Dashboard</p>
 
@@ -83,13 +84,11 @@
       const laptopId = card.dataset.laptopId;
 
       if (laptopId) {
-        // Function to fetch and update all data for a card
         const updateData = () => {
           fetch(`/api/laptop_status/${laptopId}`)
             .then((response) => response.json())
             .then((data) => {
               if (data) {
-                // Update the stolen status and card appearance
                 const cardTitleIcon = card.querySelector(".card-title i");
                 const statusBadge = card.querySelector(".card-text .badge");
 
@@ -107,7 +106,6 @@
                   statusBadge.textContent = "Secure";
                 }
 
-                // Update the live RSSI and timestamp
                 const rssiElement = card.querySelector(".live-rssi");
                 const timestampElement = card.querySelector(".live-timestamp");
 
@@ -127,9 +125,8 @@
             .catch((error) => console.error("Error fetching data:", error));
         };
 
-        // Call the function immediately and then every 5 seconds
         updateData();
-        setInterval(updateData, 5000); // Poll every 5 seconds
+        setInterval(updateData, 1000); // Poll every 1 seconds
       }
     });
   });

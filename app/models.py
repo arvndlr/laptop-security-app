@@ -31,7 +31,7 @@ class Laptop(db.Model):
     serial_number = db.Column(db.String(120), index=True, unique=True)
     is_stolen = db.Column(db.Boolean, default=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    readings = db.relationship('SensorReading', backref='laptop', lazy='dynamic')
+    readings = db.relationship('SensorReading', backref='laptop', lazy='dynamic', cascade="all, delete-orphan")
     
     # ADD THESE COLUMNS
     ibeacon_uuid = db.Column(db.String(36))
@@ -48,7 +48,16 @@ class SensorReading(db.Model):
     ibeacon_major = db.Column(db.Integer)
     ibeacon_minor = db.Column(db.Integer)
     ibeacon_rssi = db.Column(db.Integer)
-    ultrasonic_distance_cm = db.Column(db.Float)
+    
+    # Columns for the four ultrasonic sensors
+    ultrasonic_distance_1_cm = db.Column(db.Float)
+    ultrasonic_distance_2_cm = db.Column(db.Float)
+    ultrasonic_distance_3_cm = db.Column(db.Float)
+    ultrasonic_distance_4_cm = db.Column(db.Float)
+    
+    # NEW: Flag to indicate an intrusion from the ultrasonic sensor
+    ultrasonic_intrusion_detected = db.Column(db.Boolean, default=False)
+    
     laptop_id = db.Column(db.Integer, db.ForeignKey('laptop.id'))
 
     def __repr__(self):
